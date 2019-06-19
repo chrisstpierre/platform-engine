@@ -2,6 +2,7 @@
 import pathlib
 import time
 import uuid
+import copy
 from json import dumps
 
 from .utils import Dict
@@ -249,7 +250,7 @@ class Stories:
             if arg['$OBJECT'] == 'argument' or arg['$OBJECT'] == 'arg':
                 arg_name = arg['name']
                 actual = self.argument_by_name(line, arg_name)
-                Dict.set(new_context, [arg_name], actual)
+                Dict.set(new_context, [arg_name], copy.deepcopy(actual))
 
         return new_context
 

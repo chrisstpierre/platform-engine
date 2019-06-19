@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+import copy
 
 from .Mutations import Mutations
 from .Services import Services
@@ -136,7 +137,7 @@ class Lexicon:
 
     @staticmethod
     async def set(logger, story, line):
-        value = story.resolve(line['args'][0])
+        value = copy.deepcopy(story.resolve(line['args'][0]))
 
         if len(line['args']) > 1:
             # Check if args[1] is a mutation.
@@ -148,7 +149,6 @@ class Lexicon:
                     message=f'Unsupported argument in set: '
                             f'{line["args"][1]["$OBJECT"]}',
                     story=story, line=line)
-
         story.end_line(line['ln'], output=value,
                        assign={'$OBJECT': 'path', 'paths': line['name']})
         return Lexicon.line_number_or_none(story.line(line.get('next')))

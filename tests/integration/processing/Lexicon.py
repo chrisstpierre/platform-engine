@@ -1193,3 +1193,74 @@ async def test_type_casts(suite: TestSuite, logger):
 @mark.asyncio
 async def test_range_mutations(suite: TestSuite, logger):
     await run_suite(suite, logger)
+
+
+@mark.parametrize('suite', [
+    TestSuite(
+        preparation_lines='a = [1, 2, 3, 4, 5]',
+        cases=[
+            TestCase(append='b = a[1:2]',
+                     assertion=ContextAssertion(key='a', expected=[1, 2, 3, 4, 5])),
+            TestCase(append='b = a[1:2]',
+                     assertion=ContextAssertion(key='a', expected=[1, 2, 3, 4, 5])),
+            TestCase(append='b = a as List[string]',
+                     assertion=ContextAssertion(key='b', expected=['1', '2', '3', '4', '5'])),
+            TestCase(append='b = a as List[string]',
+                     assertion=ContextAssertion(key='a', expected=[1, 2, 3, 4, 5]))
+        ]
+    ),
+    TestSuite(
+        preparation_lines="l = {'a': 5}\n"
+                          "arr = [1,2,3]\n"
+                          "a = l\n"
+                          "b = arr\n",
+        cases=[
+            TestCase(append='b = [0,0]',
+                     assertion=ContextAssertion(key='arr', expected=[1, 2, 3])),
+            TestCase(append='b[0]=2',
+                     assertion=ContextAssertion(key='b', expected=[2, 2, 3])),
+            TestCase(append='b[0]=2',
+                     assertion=ContextAssertion(key='arr', expected=[1, 2, 3])),
+            TestCase(append="a['b'] = 0",
+                     assertion=ContextAssertion(key='a', expected={'a': 5, 'b': 0})),
+            TestCase(append="a['b'] = 0",
+                     assertion=ContextAssertion(key='l', expected={'a': 5}))
+        ]
+    ),
+    TestSuite(
+        preparation_lines='function modify_map m:Map[string, int] returns Map[string, int]\n'
+                          "    m['red'] = 10\n"
+                          '    return m  \n'
+                          "colour = 'red'"
+                          '\n',
+        cases=[
+            TestCase(append='b = {colour: 5}',
+                     assertion=ContextAssertion(key='b', expected={'red': 5})),
+            TestCase(append='b = {colour: 5}\n'
+                            'b = modify_map(m:b)',
+                     assertion=ContextAssertion(key='b', expected={'red': 10})),
+            TestCase(append='b = {colour: 5}\n'
+                            'c = modify_map(m:b)',
+                     assertion=ContextAssertion(key='b', expected={'red': 5}))
+        ]
+    ),
+    TestSuite(
+        preparation_lines='function modify l:List[int] returns List[int]\n'
+                          '    l[0] = 5\n'
+                          '    return l  \n'
+                          '\n',
+        cases=[
+            TestCase(append='b = [1,2]',
+                     assertion=ContextAssertion(key='b', expected=[1, 2])),
+            TestCase(append='b = [1,2]\n'
+                            'b = modify(l:b)',
+                     assertion=ContextAssertion(key='b', expected=[5, 2])),
+            TestCase(append='b = [1,2]\n'
+                            'c = modify(l:b)',
+                     assertion=ContextAssertion(key='b', expected=[1, 2]))
+        ]
+    )
+])
+@mark.asyncio
+async def test_immutability(suite: TestSuite, logger):
+    await run_suite(suite, logger)
