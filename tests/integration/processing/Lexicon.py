@@ -242,6 +242,11 @@ class TestSuite:
                      assertion=[
                          ContextAssertion(key='b', expected=[1, 2, 3, 4, 5]),
                          ContextAssertion(key='c', expected=[1, 1, 1, 1, 1])
+                     ]),
+            TestCase(append='foreach b as elem\n'
+                            '   c append item: elem\n',
+                     assertion=[
+                         ContextAssertion(key='c', expected=[])
                      ])
         ]
     ),
